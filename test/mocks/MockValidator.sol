@@ -38,6 +38,18 @@ contract MockValidator is IValidator {
         return 0x1626ba7e;
     }
 
+    function isValidCooldownSignature(
+        address, // sender
+        bytes32, // hash
+        bytes calldata // data
+    )
+        external
+        pure
+        returns (bytes4)
+    { 
+        return 0x1626ba7e;  
+    }
+
     function isModuleType(uint256 moduleTypeId) external pure returns (bool) {
         return moduleTypeId == MODULE_TYPE_VALIDATOR;
     }

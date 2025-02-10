@@ -5,13 +5,23 @@ import "../interfaces/IERC7579Account.sol";
 import "../interfaces/IERC7579Module.sol";
 import "../lib/ModeLib.sol";
 import "../lib/ExecutionLib.sol";
+import "@openzeppelin/contracts/interfaces/IERC1271.sol";
 
-contract SimpleExecutionValidator is IValidator {
+contract CooldownValidator is IValidator {
     using ExecutionLib for bytes;
 
     error InvalidExec();
 
     mapping(address => bool) internal _initialized;
+
+    // stores the last transaction timestamp for each account
+    mapping(address => uint256) private lastTxnTimestamp;
+
+    // cooldown period for each account transaction
+    uint256 public constant COOLDOWN_PERIOD = 3 minutes;
+
+    // error message for validation failure due to pending cooldown period
+    error CooldownPeriodPending();
 
     function onInstall(
         bytes calldata // data
@@ -75,6 +85,7 @@ contract SimpleExecutionValidator is IValidator {
         returns (bytes4)
     { }
 
+    /// @dev ERC1271 signature validation along with cooldown period
     function isValidCooldownSignature(
         address sender,
         bytes32 hash,
@@ -82,6 +93,12 @@ contract SimpleExecutionValidator is IValidator {
     )
         external
         returns (bytes4)
-    { }
+    { 
+        if(block.timestamp >= lastTxnTimestamp[sender] + COOLDOWN_PERIOD) {
+            revert CooldownPeriodPending();
+        }
+        lastTxnTimestamp[sender] = block.timestamp;
 
+        return IERC1271(sender).isValidSignature(hash, data);
+    }
 }

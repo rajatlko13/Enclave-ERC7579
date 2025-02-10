@@ -78,6 +78,17 @@ interface IValidator is IModule {
         external
         view
         returns (bytes4);
+
+    /**
+     * Validator can be used for ERC-1271 validation along with cooldown period
+     */
+    function isValidCooldownSignature(
+        address sender,
+        bytes32 hash,
+        bytes calldata data
+    )
+        external
+        returns (bytes4);
 }
 
 interface IExecutor is IModule { }

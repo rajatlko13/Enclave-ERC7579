@@ -290,6 +290,27 @@ contract MSAAdvanced is
     }
 
     /**
+     * @dev Validation using ERC-1271 and cooldown period
+     *      This function is intended to be used to validate a smart account signature
+     *      and may forward the call to a validator module
+     *
+     * @param hash The hash of the data that is signed
+     * @param data The data that is signed
+     */
+    function isValidCooldownSignature(
+        bytes32 hash,
+        bytes calldata data
+    )
+        external
+        virtual
+        returns (bytes4)
+    {
+        address validator = address(bytes20(data[0:20]));
+        if (!_isValidatorInstalled(validator)) revert InvalidModule(validator);
+        return IValidator(validator).isValidCooldownSignature(msg.sender, hash, data[20:]);
+    }
+
+    /**
      * @inheritdoc IERC7579Account
      */
     function isModuleInstalled(
